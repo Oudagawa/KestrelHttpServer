@@ -545,11 +545,57 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
                         "");
                 }
 
+                // Content-Length should not affect this
+                using (var connection = server.CreateConnection())
+                {
+                    await connection.SendAll(
+                        "POST / HTTP/1.1",
+                        "Transfer-Encoding: not-chunked",
+                        "Content-Length: 22",
+                        "",
+                        "C",
+                        "hello, world",
+                        "0",
+                        "",
+                        "");
+
+                    await connection.ReceiveForcedEnd(
+                        "HTTP/1.1 400 Bad Request",
+                        "Connection: close",
+                        $"Date: {testContext.DateHeaderValue}",
+                        "Content-Length: 0",
+                        "",
+                        "");
+                }
+
                 using (var connection = server.CreateConnection())
                 {
                     await connection.SendAll(
                         "POST / HTTP/1.1",
                         "Transfer-Encoding: chunked, not-chunked",
+                        "",
+                        "C",
+                        "hello, world",
+                        "0",
+                        "",
+                        "");
+
+                    await connection.ReceiveForcedEnd(
+                        "HTTP/1.1 400 Bad Request",
+                        "Connection: close",
+                        $"Date: {testContext.DateHeaderValue}",
+                        "Content-Length: 0",
+                        "",
+                        "");
+                }
+
+                // Content-Length should not affect this
+                using (var connection = server.CreateConnection())
+                {
+                    await connection.SendAll(
+                        "POST / HTTP/1.1",
+                        "Transfer-Encoding: chunked, not-chunked",
+                        "Content-Length: 22",
                         "",
                         "C",
                         "hello, world",

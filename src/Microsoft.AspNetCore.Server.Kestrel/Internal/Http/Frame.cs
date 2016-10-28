@@ -811,9 +811,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         {
             var responseHeaders = FrameResponseHeaders;
             var hasConnection = responseHeaders.HasConnection;
-            var connectionOptions = hasConnection ? FrameHeaders.ParseConnection(responseHeaders.HeaderConnection) : ConnectionOptions.None;
+            var connectionOptions = FrameHeaders.ParseConnection(responseHeaders.HeaderConnection);
             var hasTransferEncoding = responseHeaders.HasTransferEncoding;
-            var transferCoding = hasTransferEncoding ? FrameHeaders.GetFinalTransferCoding(responseHeaders.HeaderTransferEncoding) : TransferCoding.None;
+            var transferCoding = FrameHeaders.GetFinalTransferCoding(responseHeaders.HeaderTransferEncoding);
 
             var end = SocketOutput.ProducingStart();
 
@@ -830,11 +830,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             if (hasTransferEncoding && transferCoding != TransferCoding.Chunked)
             {
                 _keepAlive = false;
-
-                if (hasConnection)
-                {
-                    responseHeaders.SetRawConnection("close", _bytesConnectionClose);
-                }
             }
 
             // Set whether response can have body
